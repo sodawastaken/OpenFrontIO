@@ -1464,6 +1464,42 @@
     "search_results": "Search Results",
     "unfavorite": "Remove from favourites"
   },
+  "map_generator": {
+    "achieved": "~{islands} islands · {land}% land",
+    "archetype": {
+      "archipelago": "Archipelago",
+      "continents": "Continents",
+      "inlandSea": "Inland Sea",
+      "lakesRivers": "Lakes & Rivers",
+      "pangaea": "Pangaea"
+    },
+    "building_preview": "Building preview...",
+    "cancel": "Close",
+    "card_title": "Generate Map",
+    "generate": "Generate & Use",
+    "generating": "Generating...",
+    "islands": "Islands",
+    "land_coverage": "Land coverage",
+    "mountainousness": "Mountainousness",
+    "nations": "Nations",
+    "phase": {
+      "elevation": "Raising terrain",
+      "landmask": "Shaping coastlines",
+      "layout": "Placing landmasses",
+      "minimaps": "Building minimaps",
+      "nations": "Placing nations",
+      "packing": "Finishing up",
+      "postprocess": "Carving rivers and lakes"
+    },
+    "preview_alt": "Preview of the generated map",
+    "reroll": "New seed",
+    "roughness": "Coastline roughness",
+    "seed": "Seed",
+    "size": "Map size",
+    "size_large": "Large",
+    "size_medium": "Medium",
+    "size_small": "Small"
+  },
   "map_layers": {
     "label": "label"
   },

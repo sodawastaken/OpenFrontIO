@@ -197,6 +197,11 @@ export interface GameConfigSettingsData {
     randomMapDivider?: boolean;
     showMedals?: boolean;
     mapWins?: Map<GameMapType, Set<Difficulty>>;
+    /** Procedural map generation. Singleplayer only; other lobbies omit it. */
+    showGenerator?: boolean;
+    generatedMapThumbnail?: string | null;
+    generatedMapSelected?: boolean;
+    onOpenGenerator?: () => void;
   };
   difficulty: {
     selected: Difficulty;
@@ -448,6 +453,10 @@ export class GameConfigSettings extends LitElement {
             .onSelectMap=${this.handleSelectMap}
             .onSelectRandom=${this.handleSelectRandom}
             .searchQuery=${this.mapSearchQuery}
+            .showGenerator=${settings.map.showGenerator ?? false}
+            .generatedMapThumbnail=${settings.map.generatedMapThumbnail ?? null}
+            .generatedMapSelected=${settings.map.generatedMapSelected ?? false}
+            .onOpenGenerator=${settings.map.onOpenGenerator}
           ></map-picker>`,
           undefined,
           this.renderMapSearchInput(),

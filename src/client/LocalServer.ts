@@ -1,3 +1,4 @@
+import { isGeneratedMapId } from "../core/game/generator/MapGenTypes";
 import { ClientEnv } from "src/client/ClientEnv";
 import { z } from "zod";
 import { EventBus } from "../core/EventBus";
@@ -287,6 +288,14 @@ export class LocalServer {
 
   private archiveGameRecord(unloading: boolean) {
     if (this.archived || this.archiveInFlight) {
+      return;
+    }
+    // A procedurally generated map exists only in the session that made it:
+    // its terrain is never uploaded, so an archived record naming it could
+    // not be replayed by anyone, including this player later. Skip it
+    // explicitly rather than letting GameConfigSchema reject the unknown map
+    // id further down and log an error for something we chose to do.
+    if (isGeneratedMapId(this.lobbyConfig.gameStartInfo?.config.gameMap)) {
       return;
     }
     const players: PlayerRecord[] = [

@@ -30,6 +30,9 @@
     "generated/**/*",
     "tests/**/*",
     "src/scripts",
+    // Top level only: scripts/issue-lifecycle and scripts/pr-gate are
+    // separate CI tools with their own dependencies, not part of this build.
+    "scripts/*.ts",
     "vite.config.ts"
   ],
   "exclude": ["node_modules"]

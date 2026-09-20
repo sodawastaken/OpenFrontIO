@@ -1,4 +1,5 @@
 import { GameMapSize, GameMapType, TeamGameSpawnAreas } from "./Game";
+import { GENERATED_MAP_PREFIX } from "./generator/MapGenTypes";
 import { GameMap, GameMapImpl } from "./GameMap";
 import { GameMapLoader } from "./GameMapLoader";
 
@@ -63,6 +64,22 @@ export interface AdditionalNation {
   coordinates?: [number, number];
   flag?: string;
   name: string;
+}
+
+/**
+ * Drops cached terrain for procedurally generated maps.
+ *
+ * Each entry pins two `GameMapImpl`s — several megabytes — and the map
+ * generator can produce a new map on every click, so without this the cache
+ * would grow without bound across a session. Call it when leaving a game or
+ * before registering a replacement.
+ */
+export function evictGeneratedTerrainMaps(keepId?: string): void {
+  for (const key of [...loadedMaps.keys()]) {
+    if (!key.startsWith(GENERATED_MAP_PREFIX)) continue;
+    if (keepId !== undefined && key.startsWith(`${keepId}:`)) continue;
+    loadedMaps.delete(key);
+  }
 }
 
 export async function loadTerrainMap(

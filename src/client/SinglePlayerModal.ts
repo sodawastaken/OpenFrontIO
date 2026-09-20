@@ -1,3 +1,5 @@
+import { isGeneratedMapId, type GeneratedMapBundle } from "../core/game/generator/MapGenTypes";
+import "./components/map/MapGeneratorPanel";
 import { html, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { translateText } from "../client/Utils";
@@ -172,6 +174,8 @@ export class SinglePlayerModal extends BaseModal {
     DEFAULT_OPTIONS.selectedDifficulty;
   @state() private nations: number = 0;
   @state() private defaultNationCount: number = 0;
+  @state() private showMapGenerator = false;
+  @state() private generatedMapThumbnail: string | null = null;
   @state() private bots: number = DEFAULT_OPTIONS.bots;
   @state() private infiniteGold: boolean = DEFAULT_OPTIONS.infiniteGold;
   @state() private infiniteTroops: boolean = DEFAULT_OPTIONS.infiniteTroops;
@@ -483,6 +487,16 @@ export class SinglePlayerModal extends BaseModal {
         <div
           class="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-6 pt-4 pb-6 mr-1 mx-auto w-full max-w-5xl"
         >
+          ${this.showMapGenerator
+            ? html`<div
+                class="mb-6 p-4 rounded-xl border border-white/10 bg-black/20"
+              >
+                <map-generator-panel
+                  .onMapReady=${this.handleGeneratedMapReady}
+                  .onCancel=${this.handleCloseGenerator}
+                ></map-generator-panel>
+              </div>`
+            : null}
           <game-config-settings
             class="block"
             .sectionGapClass=${"space-y-6"}
@@ -492,6 +506,12 @@ export class SinglePlayerModal extends BaseModal {
                 useRandom: this.useRandomMap,
                 showMedals: this.showAchievements,
                 mapWins: this.mapWins,
+                // Generated maps are singleplayer-only: their terrain lives
+                // in this browser and cannot reach another player.
+                showGenerator: true,
+                generatedMapThumbnail: this.generatedMapThumbnail,
+                generatedMapSelected: isGeneratedMapId(this.selectedMap),
+                onOpenGenerator: this.handleOpenGenerator,
               },
               difficulty: {
                 selected: this.selectedDifficulty,
@@ -1214,6 +1234,30 @@ export class SinglePlayerModal extends BaseModal {
       }
     }
   }
+
+  private handleOpenGenerator = () => {
+    this.showMapGenerator = !this.showMapGenerator;
+  };
+
+  private handleCloseGenerator = () => {
+    this.showMapGenerator = false;
+  };
+
+  /**
+   * Adopts a freshly generated map as the current selection.
+   *
+   * The nation count comes from the bundle rather than from a manifest
+   * fetch, because `loadNationCount` would race the registration.
+   */
+  private handleGeneratedMapReady = (bundle: GeneratedMapBundle) => {
+    this.selectedMap = bundle.id;
+    this.useRandomMap = false;
+    this.generatedMapThumbnail =
+      terrainMapFileLoader.getMapData(bundle.id).webpPath || null;
+    this.defaultNationCount = bundle.manifest.nations.length;
+    this.nations = bundle.manifest.nations.length;
+    this.showMapGenerator = false;
+  };
 
   private async loadNationCount() {
     const currentMap = this.selectedMap;

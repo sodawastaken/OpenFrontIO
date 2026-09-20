@@ -41,6 +41,13 @@ export class MapPicker extends LitElement {
     new Map();
   @property({ attribute: false }) onSelectMap?: (map: GameMapType) => void;
   @property({ attribute: false }) onSelectRandom?: () => void;
+  /** Shows the procedural map generator card. Singleplayer only. */
+  @property({ type: Boolean }) showGenerator = false;
+  /** Thumbnail of the generated map, once one exists this session. */
+  @property({ type: String }) generatedMapThumbnail: string | null = null;
+  /** True when the generated map is the current selection. */
+  @property({ type: Boolean }) generatedMapSelected = false;
+  @property({ attribute: false }) onOpenGenerator?: () => void;
   @state() private activeTab: MapTab = "featured";
   @state() private expandedCategories: Set<string> = new Set();
   @state() private favorites: GameMapType[] = getFavoriteMaps();
@@ -309,6 +316,45 @@ export class MapPicker extends LitElement {
     </button>`;
   }
 
+  /**
+   * Entry point to the procedural generator, shown beside the Random card.
+   *
+   * Once a map has been generated this session the card shows its thumbnail,
+   * so it reads as a selectable map rather than a button.
+   */
+  private renderGeneratorCard() {
+    const selected = this.generatedMapSelected;
+    return html`
+      <button
+        type="button"
+        aria-pressed=${selected}
+        class="w-full h-full p-3 flex flex-col items-center justify-between rounded-xl border cursor-pointer transition-all duration-200 active:scale-95 gap-3 group ${selected
+          ? "bg-malibu-blue/20 border-malibu-blue/50 shadow-[var(--shadow-malibu-blue-strong)]"
+          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 hover:-translate-y-1"}"
+        @click=${() => this.onOpenGenerator?.()}
+      >
+        <div
+          class="w-full aspect-[2/1] relative overflow-hidden rounded-lg bg-black/20 flex items-center justify-center"
+        >
+          ${this.generatedMapThumbnail === null
+            ? html`<span class="text-3xl opacity-70" aria-hidden="true">✨</span>`
+            : html`<img
+                src=${this.generatedMapThumbnail}
+                alt=${translateText("map_generator.card_title")}
+                draggable="false"
+                @dragstart=${this.preventImageDrag}
+                class="w-full h-full object-cover"
+              />`}
+        </div>
+        <div
+          class="text-xs font-bold text-white uppercase tracking-wider text-center leading-tight break-words hyphens-auto"
+        >
+          ${translateText("map_generator.card_title")}
+        </div>
+      </button>
+    `;
+  }
+
   render() {
     const isSearching = this.searchQuery.trim().length > 0;
     return html`
@@ -341,6 +387,7 @@ export class MapPicker extends LitElement {
         >
           ${this.renderSectionHeading(translateText("map_categories.special"))}
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            ${this.showGenerator ? this.renderGeneratorCard() : null}
             <button
               type="button"
               class="w-full h-full p-3 flex flex-col items-center justify-between rounded-xl border cursor-pointer transition-all duration-200 active:scale-95 gap-3 group ${this

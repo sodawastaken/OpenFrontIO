@@ -8,6 +8,7 @@ import {
 } from "../game/Game";
 import { TileRef } from "../game/GameMap";
 import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
+import type { GeneratedMapPayload } from "../game/generator/GeneratedMapRegistry";
 import { ClientID, GameStartInfo, Turn } from "../Schemas";
 
 export type WorkerMessageType =
@@ -43,6 +44,17 @@ export interface InitMessage extends BaseWorkerMessage {
   gameStartInfo: GameStartInfo;
   clientID: ClientID | undefined;
   cdnBase: string;
+  /**
+   * Terrain for a procedurally generated map, which has no files to fetch.
+   *
+   * The worker builds its own map loader and never sees main-thread state,
+   * so a generated map has to travel with the init message. It is sent as an
+   * ordinary structured clone rather than a transfer: the main thread has
+   * already handed these same buffers to its `GameMapImpl`, which keeps and
+   * mutates them for the life of the game, so transferring would detach the
+   * terrain out from under the renderer.
+   */
+  generatedMap?: GeneratedMapPayload;
 }
 
 export interface TurnMessage extends BaseWorkerMessage {

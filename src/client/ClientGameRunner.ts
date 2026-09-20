@@ -1,3 +1,4 @@
+import { generatedMapPayloadFor } from "../core/game/generator/GeneratedMapRegistry";
 import { Config } from "src/core/configuration/Config";
 import { ClientEnv } from "../client/ClientEnv";
 import { reloadForUpdate, translateText } from "../client/Utils";
@@ -694,7 +695,18 @@ async function createClientGame(
   // Kick off the font-atlas fetch so it overlaps with worker init; the
   // render passes need it parsed before createWebGLView runs.
   const atlasDataLoad = preloadAtlasData();
-  const worker = new WorkerClient(lobbyConfig.gameStartInfo, clientID);
+  // A generated map exists only in this session's memory, so its terrain has
+  // to travel to the simulation worker with the init message rather than
+  // being fetched there. Sending the very bytes the renderer just loaded is
+  // what guarantees the two halves of the game agree about the world.
+  const generatedMapPayload = generatedMapPayloadFor(
+    lobbyConfig.gameStartInfo.config.gameMap,
+  );
+  const worker = new WorkerClient(
+    lobbyConfig.gameStartInfo,
+    clientID,
+    generatedMapPayload,
+  );
   await worker.initialize();
   await atlasDataLoad;
   const gameView = new GameView(

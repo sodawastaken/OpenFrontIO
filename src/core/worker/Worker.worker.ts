@@ -1,5 +1,9 @@
 import { assetUrl } from "../AssetUrls";
 import { FetchGameMapLoader } from "../game/FetchGameMapLoader";
+import {
+  CompositeGameMapLoader,
+  generatedMaps,
+} from "../game/generator/GeneratedMapRegistry";
 import { ErrorUpdate, GameUpdateViewData } from "../game/GameUpdates";
 import { createGameRunner, GameRunner } from "../GameRunner";
 import {
@@ -18,7 +22,10 @@ import {
 const ctx: Worker = self as any;
 globalThis.__ASSET_MANIFEST__ = __ASSET_MANIFEST__;
 let gameRunner: Promise<GameRunner> | null = null;
-const mapLoader = new FetchGameMapLoader((path) => assetUrl(`maps/${path}`));
+const fetchMapLoader = new FetchGameMapLoader((path) => assetUrl(`maps/${path}`));
+// Generated maps have no files to fetch, so they are registered from the init
+// message and served out of memory; everything else still comes off the CDN.
+const mapLoader = new CompositeGameMapLoader(fetchMapLoader);
 // Yield threshold; not a backlog cap. Used to avoid monopolizing the worker task
 // and flooding the main thread with messages during catch-up.
 const MAX_TICKS_BEFORE_YIELD = 4;
@@ -147,6 +154,11 @@ ctx.addEventListener("message", async (e: MessageEvent<MainThreadMessage>) => {
         // Set before createGameRunner so map fetches via mapLoader pick up the
         // CDN base. Workers have no `window`, so AssetUrls falls back to this.
         globalThis.__CDN_BASE__ = message.cdnBase;
+        if (message.generatedMap !== undefined) {
+          // No thumbnail is sent or needed here -- the worker never renders
+          // the map picker, only simulates the terrain.
+          generatedMaps.register(message.generatedMap, "");
+        }
         gameRunner = createGameRunner(
           message.gameStartInfo,
           message.clientID,

@@ -1,3 +1,4 @@
+import type { GeneratedMapPayload } from "../game/generator/GeneratedMapRegistry";
 import { getCdnBase } from "../AssetUrls";
 import {
   BuildableUnit,
@@ -36,6 +37,8 @@ export class WorkerClient {
   constructor(
     private gameStartInfo: GameStartInfo,
     private clientID: ClientID | undefined,
+    /** Terrain for a generated map, which the worker cannot fetch. */
+    private generatedMap?: GeneratedMapPayload,
   ) {
     this.messageHandlers = new Map();
   }
@@ -94,6 +97,7 @@ export class WorkerClient {
         gameStartInfo: this.gameStartInfo,
         clientID: this.clientID,
         cdnBase: getCdnBase(),
+        generatedMap: this.generatedMap,
       });
 
       setTimeout(() => {
